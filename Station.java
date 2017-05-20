@@ -1,7 +1,7 @@
 class Station {
   private String name;
   private Route[] routes;
-  
+
   public Station(String name) {
     this.name = name;
     this.routes  = new Route[4];
@@ -31,6 +31,7 @@ class Station {
     }
     return route;
   }
+  
   public String getName() {
     return name;
   }

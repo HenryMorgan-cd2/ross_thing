@@ -1,18 +1,26 @@
 class Route {
-  private String startStn;
-  private String endStn;
+  private Station startStation;
+  private Station endStation;
   private double singlePrice;
   private double returnPrice;
   private int journeyTime;
   private String[] stations;
 
-  public Route(Station startStn, Station endStn, double singlePrice, double returnPrice, int journeyTime) {
-    this.startStn = startStn;
-    this.endStn = endStn;
+  public Route(Station startStation, Station endStation, double singlePrice, double returnPrice, int journeyTime) {
+    this.startStation = startStation;
+    this.endStation = endStation;
     this.singlePrice = singlePrice;
     this.returnPrice = returnPrice;
     this.journeyTime = journeyTime;
-    startStn.addRoute(this);
+    startStation.addRoute(this);
+  }
+
+  public Station getStartstation() {
+    return startStation;
+  }
+
+  public Station getEndStation() {
+    return endStation;
   }
 
   public double getSinglePrice() {
@@ -35,17 +43,14 @@ class Route {
     return stations;
   }
 
-  public String getEndStation() {
-    return endStn;
-  }
 
   public String[] path() {
     String[] route = new String[stations.length + 2];
-    route[0] = startStn.getName();
+    route[0] = startStation.getName();
     for (int i = 1; i <= stations.length; i++) {
       route[i] = stations[i - 1];
     }
-    route[route.length - 1] = endStn.getName();
+    route[route.length - 1] = endStation.getName();
     return route;
   }
 }
