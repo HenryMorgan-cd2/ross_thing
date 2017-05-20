@@ -150,7 +150,7 @@ class JCalendar extends JPanel {
 
     //show selected button
     if (this.year == this.selectedYear && this.month == this.selectedMonth) {
-      this.dateButtons[this.selectedDate-1].setBackground(Color.RED);
+      this.dateButtons[this.selectedDate-1].setBackground(Color.YELLOW);
     } else {
       this.dateButtons[this.selectedDate-1].setBackground(null);
     }
@@ -164,12 +164,17 @@ class JCalendar extends JPanel {
   }
 
 
+  public boolean isLastDay() {
+    return this.selectedDate == this.daysInMonth[month];
+
+  }
+
   private boolean isLeapYear() {
     return isLeapYear(this.selectedYear);
   }
 
   private boolean isLeapYear(int year) {
-    return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
+    return !((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
   }
 
 

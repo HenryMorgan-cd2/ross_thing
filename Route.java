@@ -1,10 +1,12 @@
+import java.util.Arrays;
+
 class Route {
   private Station startStation;
   private Station endStation;
   private double singlePrice;
   private double returnPrice;
   private int journeyTime;
-  private String[] stations;
+  private String[] stations = {};
 
   public Route(Station startStation, Station endStation, double singlePrice, double returnPrice, int journeyTime) {
     this.startStation = startStation;
@@ -15,7 +17,7 @@ class Route {
     startStation.addRoute(this);
   }
 
-  public Station getStartstation() {
+  public Station getStartStation() {
     return startStation;
   }
 
@@ -24,6 +26,7 @@ class Route {
   }
 
   public double getSinglePrice() {
+    System.out.println(singlePrice);
     return singlePrice;
   }
 
@@ -45,12 +48,25 @@ class Route {
 
 
   public String[] path() {
-    String[] route = new String[stations.length + 2];
-    route[0] = startStation.getName();
-    for (int i = 1; i <= stations.length; i++) {
-      route[i] = stations[i - 1];
+    return path(false);
+  }
+
+  public String[] path(boolean sortAlpha) {
+    String[] route = new String[this.stations.length + 2];
+
+    String[] interStations = stations.clone();
+
+    if (sortAlpha) {
+      Arrays.sort(interStations);
     }
+
+    for (int i = 1; i <= interStations.length; i++) {
+      route[i] = interStations[i - 1];
+    }
+
+    route[0] = startStation.getName();
     route[route.length - 1] = endStation.getName();
+
     return route;
   }
 }

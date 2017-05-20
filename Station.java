@@ -1,38 +1,59 @@
 class Station {
-  private String name;
-  private Route[] routes;
+  private String mName;
+  private Route[] mRoutes;
 
   public Station(String name) {
-    this.name = name;
-    this.routes  = new Route[4];
+    mName = name;
+    mRoutes  = new Route[5];
+  }
+
+  public String getName() {
+    return mName;
+  }
+
+  public Route[] getRoutes() {
+    return mRoutes;
+  }
+
+  public Route getRouteFor(Station station) {
+    return getRouteFor(station.getName());
+  }
+
+  public Route getRouteFor(String stationName) {
+    switch (stationName) {
+      case "Leicester":
+        return mRoutes[0];
+      case "Loughborough":
+        return mRoutes[1];
+      case "Nottingham":
+        return mRoutes[2];
+      case "Derby":
+        return mRoutes[3];
+      case "York":
+        return mRoutes[4];
+    }
+    return null;
   }
 
   public Route addRoute(Route route) {
     switch (route.getEndStation().getName()) {
-      case "Leicester" :
-        this.routes[0] = route;
+      case "Leicester":
+        this.mRoutes[0] = route;
         break;
-
-      case "Loughborough" :
-        this.routes[1] = route;
+      case "Loughborough":
+        this.mRoutes[1] = route;
         break;
-
-      case "Nottingham" :
-        this.routes[2] = route;
+      case "Nottingham":
+        this.mRoutes[2] = route;
         break;
-
-      case "Derby" :
-        this.routes[3] = route;
+      case "Derby":
+        this.mRoutes[3] = route;
         break;
-
-      case "York" :
-        this.routes[4] = route;
+      case "York":
+        this.mRoutes[4] = route;
         break;
     }
     return route;
   }
-  
-  public String getName() {
-    return name;
-  }
+
 }

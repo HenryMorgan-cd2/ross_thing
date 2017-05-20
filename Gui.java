@@ -2,6 +2,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.event.*;
+import javax.swing.event.*;
 
 class Gui extends JFrame {
 
@@ -24,21 +25,19 @@ class Gui extends JFrame {
 
   private JComboBox inputDepartingCombo;
   private JComboBox inputArrivingCombo;
-  private JComboBox inputMonthCombo;
-  private JComboBox inputYearCombo;
-  private JComboBox inputAdminStartCombo;
-  private JComboBox inputAdminEndCombo;
+  private JComboBox adminStartCombo;
+  private JComboBox adminEndCombo;
 
   private JRadioButton inputSingleRadio;
   private JRadioButton inputReturnRadio;
+  private JRadioButton routeOptionABCRadio;
+  private JRadioButton routeOptionOrderRadio;
 
   private JButton goButton;
-  private JButton resetButton;
-  private JButton saveButton;
-  private JButton loadButton;
-  private JButton updateButton;
 
   private JTextArea inputAdminTextArea;
+
+  private JCalendar mCalendar;
 
 
   //////////////////ALL EVENT LISTENERS
@@ -50,13 +49,16 @@ class Gui extends JFrame {
   }
 
   public interface EventHandler {
-    public void onAdminButtonClicked(ActionEvent e);
-    public void onBackButtonClicked(ActionEvent e);
-    public void onResetButtonClicked(ActionEvent e);
     public void onGoButtonClicked(ActionEvent e);
-    public void onInputMonthComboClicked(ActionEvent e);
-    public void onInputYearComboClicked(ActionEvent e);
-    public void onInputDateButtonClicked(int date, ActionEvent e);
+
+    public void onSortOrderChange();
+
+    public void onAdminStartChanged(String stationName);
+    public void onAdminEndChanged(String stationName);
+
+    public void onAdminSaveClicked();
+    public void onAdminLoadClicked();
+    public void onAdminUpdateClicked();
   }
 
 
@@ -71,18 +73,15 @@ class Gui extends JFrame {
 
 
     windowPanel = new JPanel();
+    add(windowPanel);
+
     CardLayout layout = new CardLayout();
     windowPanel.setLayout(layout);
 
     windowPanel.add(buildFrontEndPanel(), FRONT_END_VIEW_KEY);
     windowPanel.add(buildAdminPanel(), ADMIN_VIEW_KEY);
 
-    add(windowPanel);
     layout.show(windowPanel, FRONT_END_VIEW_KEY);
-
-    setGuiOutputPrice("12.00");
-    setGuiOutputTime("50");
-    setGuiOutputRoute("Leicester");
 
   }
 
@@ -104,10 +103,7 @@ class Gui extends JFrame {
     adminButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        System.out.println(mEventHandler);
-        if (mEventHandler != null) {
-          mEventHandler.onAdminButtonClicked(e);
-        }
+        showAdmin();
       }
     });
 
@@ -129,6 +125,7 @@ class Gui extends JFrame {
     panel.add(buildOutputPricePanel());
     panel.add(buildOutputTimePanel());
     panel.add(buildOutputRoutePanel());
+    panel.add(buildOutputRouteOptionsPanel());
     return panel;
   }
 
@@ -137,7 +134,8 @@ class Gui extends JFrame {
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.add(buildInputDepartingPanel());
     panel.add(buildInputArrivingPanel());
-    panel.add(new JCalendar());
+    mCalendar = new JCalendar();
+    panel.add(mCalendar);
     panel.add(buildInputSingleReturnPanel());
     panel.add(buildInputActionsPanel());
     return panel;
@@ -150,6 +148,7 @@ class Gui extends JFrame {
     panel.add(outputPriceLabel);
     return panel;
   }
+
   private JPanel buildOutputTimePanel() {
     JPanel panel = new JPanel();
     panel.add(new JLabel("Journey time: "));
@@ -165,6 +164,37 @@ class Gui extends JFrame {
     panel.add(outputRouteLabel);
     return panel;
   }
+
+  private JPanel buildOutputRouteOptionsPanel() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new GridLayout(1, 2));
+    routeOptionABCRadio = new JRadioButton("ABC");
+    routeOptionABCRadio.addActionListener(new ActionListener(){
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mEventHandler != null) {
+          mEventHandler.onSortOrderChange();
+        }
+      }
+    });
+    routeOptionOrderRadio = new JRadioButton("Route order");
+    routeOptionOrderRadio.addActionListener(new ActionListener(){
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mEventHandler != null) {
+          mEventHandler.onSortOrderChange();
+        }
+      }
+    });
+    ButtonGroup group = new ButtonGroup();
+    group.add(routeOptionABCRadio);
+    group.add(routeOptionOrderRadio);
+    routeOptionOrderRadio.setSelected(true);
+    panel.add(routeOptionABCRadio);
+    panel.add(routeOptionOrderRadio);
+    return panel;
+  }
+
   private JPanel buildInputDepartingPanel() {
     JPanel panel = new JPanel();
     panel.setLayout(new GridLayout(1, 2));
@@ -181,14 +211,7 @@ class Gui extends JFrame {
     panel.add(inputArrivingCombo);
     return panel;
   }
-  private JPanel buildInputCalendarPanel() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.add(buildInputCalendarComboPanel());
-    panel.add(buildInputCalendarDatePanel());
 
-    return panel;
-  }
   private JPanel buildInputSingleReturnPanel() {
     JPanel panel = new JPanel();
     panel.setLayout(new GridLayout(1, 2));
@@ -202,19 +225,11 @@ class Gui extends JFrame {
     panel.add(inputReturnRadio);
     return panel;
   }
+
   private JPanel buildInputActionsPanel() {
     JPanel panel = new JPanel();
     panel.setLayout(new GridLayout(1, 2));
-    resetButton = new JButton("Reset");
-    panel.add(resetButton);
-    resetButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (mEventHandler != null) {
-          mEventHandler.onResetButtonClicked(e);
-        }
-      }
-    });
+    panel.add(new Jlabel("Submit: "));
     goButton = new JButton("Go!");
     panel.add(goButton);
     goButton.addActionListener(new ActionListener() {
@@ -228,54 +243,6 @@ class Gui extends JFrame {
     return panel;
   }
 
-  private JPanel buildInputCalendarComboPanel() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new GridLayout(1, 2));
-    inputMonthCombo = new JComboBox(stationNames);
-    panel.add(inputMonthCombo);
-    inputMonthCombo.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (mEventHandler != null) {
-          mEventHandler.onInputMonthComboClicked(e);
-        }
-      }
-    });
-    inputYearCombo = new JComboBox(stationNames);
-    panel.add(inputYearCombo);
-    inputYearCombo.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (mEventHandler != null) {
-          mEventHandler.onInputYearComboClicked(e);
-        }
-      }
-    });
-    return panel;
-  }
-
-  private JPanel buildInputCalendarDatePanel() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new GridLayout(5, 7));
-    for (int i = 1; i <= 31; i++) {
-      panel.add(buildInputCalendarDateButton(i));
-    }
-    return panel;
-  }
-
-  private JButton buildInputCalendarDateButton(final int date) {
-    JButton button = new JButton(String.valueOf(date));
-    button.setBorder(null);
-    button.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (mEventHandler != null) {
-          mEventHandler.onInputDateButtonClicked(date, e);
-        }
-      }
-    });
-    return button;
-  }
 
   //admin GUI
 
@@ -296,9 +263,7 @@ class Gui extends JFrame {
     button.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (mEventHandler != null) {
-          mEventHandler.onBackButtonClicked(e);
-        }
+        showWindow();
       }
     });
 
@@ -316,34 +281,73 @@ class Gui extends JFrame {
 
   private JPanel buildAdminInputPanel() {
     JPanel panel = new JPanel();
-    panel.add(new JLabel("Start station: "));
-    inputAdminStartCombo = new JComboBox(stationNames);
-    panel.add(inputAdminStartCombo);
-    panel.add(new JLabel("End station: "));
-    inputAdminEndCombo = new JComboBox(stationNames);
-    panel.add(inputAdminEndCombo);
+    adminStartCombo = new JComboBox(stationNames);
+    adminStartCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mEventHandler != null) {
+          mEventHandler.onAdminStartChanged(adminStartCombo.getSelectedItem().toString());
+        }
+      }
+    });
+    panel.add(adminStartCombo);
+    panel.add(new JLabel(" to "));
+    adminEndCombo = new JComboBox(stationNames);
+    adminEndCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mEventHandler != null) {
+          mEventHandler.onAdminEndChanged(adminEndCombo.getSelectedItem().toString());
+        }
+      }
+    });
+    panel.add(adminEndCombo);
     return panel;
   }
 
   private JPanel buildAdminStationPanel() {
     JPanel panel = new JPanel();
     inputAdminTextArea = new JTextArea(5, 20);
-    panel.add(inputAdminTextArea);
+    panel.add(new JScrollPane(inputAdminTextArea));
     return panel;
   }
 
   private JPanel buildAdminButtonPanel() {
     JPanel panel = new JPanel();
-    saveButton = new JButton("Save");
-    panel.add(saveButton);
-    loadButton = new JButton("Load");
-    panel.add(loadButton);
-    updateButton = new JButton("Update");
-    panel.add(updateButton);
+    JButton save = new JButton("Save");
+    save.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mEventHandler != null) {
+          mEventHandler.onAdminSaveClicked();
+        }
+      }
+    });
+    panel.add(save);
+    JButton load = new JButton("Load");
+    load.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mEventHandler != null) {
+          mEventHandler.onAdminLoadClicked();
+        }
+      }
+    });
+    panel.add(load);
+    JButton update = new JButton("Update");
+    update.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mEventHandler != null) {
+          mEventHandler.onAdminUpdateClicked();
+        }
+      }
+    });
+    panel.add(update);
     return panel;
   }
 
-  ///////////////////GUI SETTERS
+  ///////////////////SETTERS
 
   public void showAdmin() {
     CardLayout cardLayout = (CardLayout) windowPanel.getLayout();
@@ -355,16 +359,71 @@ class Gui extends JFrame {
     cardLayout.show(windowPanel, FRONT_END_VIEW_KEY);
   }
 
-  public void setGuiOutputPrice(String price) {
+  public void setOutputPrice(String price) {
     outputPriceLabel.setText(price);
   }
 
-  public void setGuiOutputTime(String time) {
+  public void setOutputTime(String time) {
     outputTimeLabel.setText(time);
   }
 
-  public void setGuiOutputRoute(String route) {
+  public void setOutputRoute(String route) {
     outputRouteLabel.setText(route);
+  }
+
+  public void setOutputRoute(Route route) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("<html>");
+    for (String part : route.path(isSortAlphabetical())) {
+      builder.append(part);
+      builder.append("<br>");
+    }
+    builder.append("</html>");
+    setOutputRoute(builder.toString());
+  }
+
+  public void setAdminRoute(Route route) {
+    String s = "";
+    for (String part : route.getStations()) {
+      s+=part+"\n";
+    }
+    inputAdminTextArea.setText(s);
+  }
+
+
+  ////////////////////GETTERS
+
+  public String getAdminStartStation() {
+    return adminStartCombo.getSelectedItem().toString();
+  }
+  public String getAdminEndStation() {
+    return adminEndCombo.getSelectedItem().toString();
+
+  }
+
+  public String[] getAdminRoute() {
+    return inputAdminTextArea.getText().split("\\r?\\n");
+  }
+
+
+  public String getDepartingStationName() {
+    return inputDepartingCombo.getSelectedItem().toString();
+  }
+
+  public String getArrivingStationName() {
+    return inputArrivingCombo.getSelectedItem().toString();
+  }
+
+  public boolean isSingle() {
+    return inputSingleRadio.isSelected();
+  }
+
+  public JCalendar getCalendar() {
+    return this.mCalendar;
+  }
+
+  public boolean isSortAlphabetical() {
+    return routeOptionABCRadio.isSelected();
   }
 
 }
